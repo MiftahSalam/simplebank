@@ -2,12 +2,14 @@ package api
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 
 	db "simplebank/db/sqlc"
+	"simplebank/token"
 )
 
 type createAccountRequest struct {
@@ -32,7 +34,9 @@ func (server *Server) listAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
 	arg := db.ListAccountParams{
+		Owner:  authPayload.Username,
 		Limit:  req.Size,
 		Offset: (req.Page - 1) * req.Size,
 	}
@@ -65,6 +69,12 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
+	if authPayload.Username != account.Owner {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("account doesn't belong to the authenticated user")))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -76,8 +86,9 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authPayloadKey).(*token.Payload)
 	arg := db.CreateAccountParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
