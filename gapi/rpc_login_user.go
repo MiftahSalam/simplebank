@@ -42,6 +42,8 @@ func (server *Server) LoginUser(ctx context.Context, req *pb.LoginUserRequest) (
 		Username:     user.Username,
 		RefreshToken: refreshToken,
 		ExpiredAt:    payloadRefreshToken.ExpiredAt,
+		UserAgent:    server.extractMetadata(ctx).UserAgent,
+		ClientIp:     server.extractMetadata(ctx).ClientIP,
 	})
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create session: %s", err)
