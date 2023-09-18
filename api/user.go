@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 
 	db "simplebank/db/sqlc"
@@ -33,8 +34,12 @@ type loginUserRequest struct {
 }
 
 type loginUserResponse struct {
-	AccessToken string       `json:"access_token"`
-	User        userResponse `json:"user"`
+	User                  userResponse `json:"user"`
+	SessionId             uuid.UUID    `json:"session_id"`
+	AccessToken           string       `json:"access_token"`
+	AccessTokenExpiredAt  time.Time    `json:"access_token_expired_at"`
+	RefreshToken          string       `json:"refresh_token"`
+	RefreshTokenExpiredAt time.Time    `json:"refresh_token_expired_at"`
 }
 
 func newUserResponse(user db.User) userResponse {
@@ -109,15 +114,38 @@ func (server *Server) loginUser(ctx *gin.Context) {
 		return
 	}
 
-	accessToken, err := server.tokenManager.CreateToken(user.Username, server.config.TokenExpiredDuration)
+	accessToken, payloadAccessToken, err := server.tokenManager.CreateToken(user.Username, server.config.TokenExpiredDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	refreshToken, payloadRefreshToken, err := server.tokenManager.CreateToken(user.Username, server.config.RefreshTokenExpiredDuration)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	session, err := server.store.CreateSession(ctx, db.CreateSessionParams{
+		ID:           payloadRefreshToken.ID,
+		Username:     user.Username,
+		RefreshToken: refreshToken,
+		ExpiredAt:    payloadRefreshToken.ExpiredAt,
+		UserAgent:    ctx.Request.UserAgent(),
+		ClientIp:     ctx.ClientIP(),
+	})
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
 	ctx.JSON(http.StatusOK, loginUserResponse{
-		AccessToken: accessToken,
-		User:        newUserResponse(user),
+		AccessToken:           accessToken,
+		SessionId:             session.ID,
+		AccessTokenExpiredAt:  payloadAccessToken.ExpiredAt,
+		RefreshToken:          refreshToken,
+		RefreshTokenExpiredAt: payloadRefreshToken.ExpiredAt,
+		User:                  newUserResponse(user),
 	})
 
 }
