@@ -17,11 +17,12 @@ func TestJwt(t *testing.T) {
 	issuedAt := time.Now()
 	expiredAt := issuedAt.Add(duration)
 
-	token, err := tokenManager.CreateToken(username, duration)
+	token, payload, err := tokenManager.CreateToken(username, duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
+	require.NotEmpty(t, payload)
 
-	payload, err := tokenManager.VerifyToken(token)
+	payload, err = tokenManager.VerifyToken(token)
 	require.NoError(t, err)
 	require.NotEmpty(t, payload)
 
@@ -38,11 +39,12 @@ func TestJwtExpired(t *testing.T) {
 	username := util.RandomOwner()
 	duration := time.Minute
 
-	token, err := tokenManager.CreateToken(username, -duration)
+	token, payload, err := tokenManager.CreateToken(username, -duration)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
+	require.NotEmpty(t, payload)
 
-	payload, err := tokenManager.VerifyToken(token)
+	payload, err = tokenManager.VerifyToken(token)
 	require.Error(t, err)
 	require.EqualError(t, err, ErrExpiredToken.Error())
 	require.Nil(t, payload)

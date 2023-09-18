@@ -27,13 +27,14 @@ func NewPasetoToken(symetricKey string) (TokenManager, error) {
 }
 
 // CreateToken implements TokenManager.
-func (manage *PasetoToken) CreateToken(username string, duration time.Duration) (string, error) {
+func (manage *PasetoToken) CreateToken(username string, duration time.Duration) (string, *Payload, error) {
 	payload, err := NewPayload(username, duration)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return manage.paseto.Encrypt(manage.symetricKey, payload, nil)
+	token, err := manage.paseto.Encrypt(manage.symetricKey, payload, nil)
+	return token, payload, err
 }
 
 // VerifyToken implements TokenManager.

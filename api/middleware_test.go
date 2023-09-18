@@ -19,7 +19,7 @@ func addAuth(
 	authType string,
 	username string,
 	duration time.Duration) {
-	token, err := tokenManager.CreateToken(username, duration)
+	token, _, err := tokenManager.CreateToken(username, duration)
 	require.NoError(t, err)
 
 	authHeader := fmt.Sprintf("%s %s", authType, token)
