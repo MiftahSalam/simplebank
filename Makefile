@@ -34,7 +34,9 @@ server-dev:
 proto:
 	rm -f pb/*.go
 	protoc --proto_path=proto --go_out=pb --go_opt=paths=source_relative \
-	--go_grpc_out=pb --go_grpc_opt=paths=source_relative proto/*.proto
+	--go_grpc_out=pb --go_grpc_opt=paths=source_relative \
+	--grpc-gateway_out=pb --grpc-gateway_opt=paths=source_relative \
+	proto/*.proto
 
 evans:
 	evans --host localhost --port 9090 -r repl
