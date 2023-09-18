@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
@@ -35,6 +36,24 @@ func TestGetUser(t *testing.T) {
 	require.Equal(t, user.Email, userGet.Email)
 	require.WithinDuration(t, user.PasswordChangedAt, userGet.PasswordChangedAt, time.Second)
 	require.WithinDuration(t, user.CreatedAt, userGet.CreatedAt, time.Second)
+}
+
+func TestUpdateUser(t *testing.T) {
+	_, user, err := createRandomUser()
+	require.NoError(t, err)
+
+	updatedUser, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
+		Username: user.Username,
+		FullName: sql.NullString{
+			String: util.RandomOwner(),
+			Valid:  true,
+		},
+	})
+
+	require.NoError(t, err)
+	require.NotEqual(t, user.FullName, updatedUser.FullName)
+	require.Equal(t, user.Username, updatedUser.Username)
+	require.Equal(t, user.Email, updatedUser.Email)
 }
 
 func createRandomUser() (User, User, error) {
