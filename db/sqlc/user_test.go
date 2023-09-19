@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +26,7 @@ func TestGetUser(t *testing.T) {
 	_, user, err := createRandomUser()
 	require.NoError(t, err)
 
-	userGet, err := testQueries.GetUser(context.Background(), user.Username)
+	userGet, err := testStore.GetUser(context.Background(), user.Username)
 	require.NoError(t, err)
 	require.NotEmpty(t, userGet)
 
@@ -42,9 +42,9 @@ func TestUpdateUser(t *testing.T) {
 	_, user, err := createRandomUser()
 	require.NoError(t, err)
 
-	updatedUser, err := testQueries.UpdateUser(context.Background(), UpdateUserParams{
+	updatedUser, err := testStore.UpdateUser(context.Background(), UpdateUserParams{
 		Username: user.Username,
-		FullName: sql.NullString{
+		FullName: pgtype.Text{
 			String: util.RandomOwner(),
 			Valid:  true,
 		},
@@ -65,6 +65,6 @@ func createRandomUser() (User, User, error) {
 		Email:          util.RandomEmail(),
 	}
 
-	createdUser, err := testQueries.CreateUser(context.Background(), arg)
+	createdUser, err := testStore.CreateUser(context.Background(), arg)
 	return User{Username: arg.Username, FullName: arg.FullName, HashedPassword: arg.HashedPassword, Email: arg.Email}, createdUser, err
 }

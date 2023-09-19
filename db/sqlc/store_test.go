@@ -9,8 +9,6 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
-	store := NewStore(testDb)
-
 	_, account1, err := createRandomAccount()
 	require.NoError(t, err)
 
@@ -26,7 +24,7 @@ func TestTransferTx(t *testing.T) {
 	amount := int64(10)
 	for i := 0; i < n; i++ {
 		go func() {
-			result, err := store.TransferTx(context.Background(), CreateTransferParams{
+			result, err := testStore.TransferTx(context.Background(), CreateTransferParams{
 				FromAccountID: account1.ID,
 				ToAccountID:   account2.ID,
 				Amount:        amount,
@@ -52,7 +50,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, result.Transfer.ID)
 		require.NotZero(t, result.Transfer.CreatedAt)
 
-		_, err = store.GetTransfer(context.Background(), result.Transfer.ID)
+		_, err = testStore.GetTransfer(context.Background(), result.Transfer.ID)
 		require.NoError(t, err)
 
 		require.NotEmpty(t, result.FromEntry)
@@ -61,7 +59,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, result.FromEntry.ID)
 		require.NotZero(t, result.FromEntry.CreatedAt)
 
-		_, err = store.GetEntry(context.Background(), result.FromEntry.ID)
+		_, err = testStore.GetEntry(context.Background(), result.FromEntry.ID)
 		require.NoError(t, err)
 
 		require.NotEmpty(t, result.ToEntry)
@@ -70,7 +68,7 @@ func TestTransferTx(t *testing.T) {
 		require.NotZero(t, result.ToEntry.ID)
 		require.NotZero(t, result.ToEntry.CreatedAt)
 
-		_, err = store.GetEntry(context.Background(), result.ToEntry.ID)
+		_, err = testStore.GetEntry(context.Background(), result.ToEntry.ID)
 		require.NoError(t, err)
 
 		require.NotEmpty(t, result.FromAccount)
@@ -96,10 +94,10 @@ func TestTransferTx(t *testing.T) {
 		existed[k] = true
 	}
 
-	updateAccount1, err := testQueries.GetAccount(context.Background(), account1.ID)
+	updateAccount1, err := testStore.GetAccount(context.Background(), account1.ID)
 	require.NoError(t, err)
 
-	updateAccount2, err := testQueries.GetAccount(context.Background(), account2.ID)
+	updateAccount2, err := testStore.GetAccount(context.Background(), account2.ID)
 	require.NoError(t, err)
 
 	fmt.Println(">> after: ", updateAccount1.Balance, updateAccount2.Balance)

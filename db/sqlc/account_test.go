@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"simplebank/util"
 	"testing"
 	"time"
@@ -27,7 +26,7 @@ func TestGetAccount(t *testing.T) {
 	_, account, err := createRandomAccount()
 	require.NoError(t, err)
 
-	accountGet, err := testQueries.GetAccount(context.Background(), account.ID)
+	accountGet, err := testStore.GetAccount(context.Background(), account.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, accountGet)
 
@@ -43,7 +42,7 @@ func TestUpdateAccountBalance(t *testing.T) {
 	require.NoError(t, err)
 
 	arg := UpdateAccountBalanceParams{ID: account.ID, Amount: util.RandomBalance()}
-	accountUpdated, err := testQueries.UpdateAccountBalance(context.Background(), arg)
+	accountUpdated, err := testStore.UpdateAccountBalance(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, accountUpdated)
 
@@ -58,12 +57,12 @@ func TestDeleteAccount(t *testing.T) {
 	_, account, err := createRandomAccount()
 	require.NoError(t, err)
 
-	err = testQueries.DeleteAccount(context.Background(), account.ID)
+	err = testStore.DeleteAccount(context.Background(), account.ID)
 	require.NoError(t, err)
 
-	accountGet, err := testQueries.GetAccount(context.Background(), account.ID)
+	accountGet, err := testStore.GetAccount(context.Background(), account.ID)
 	require.Error(t, err)
-	require.EqualError(t, err, sql.ErrNoRows.Error())
+	require.EqualError(t, err, ErrRecordNotFound.Error())
 	require.Empty(t, accountGet)
 
 }
@@ -78,7 +77,7 @@ func TestListAccount(t *testing.T) {
 
 	arg := ListAccountParams{Owner: lastAccount.Owner, Limit: 5, Offset: 0}
 
-	accounts, err := testQueries.ListAccount(context.Background(), arg)
+	accounts, err := testStore.ListAccount(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, accounts)
 
@@ -96,6 +95,6 @@ func createRandomAccount() (Account, Account, error) {
 		Currency: util.RandomCurrency(),
 	}
 
-	createdAccount, err := testQueries.CreateAccount(context.Background(), arg)
+	createdAccount, err := testStore.CreateAccount(context.Background(), arg)
 	return Account{Owner: arg.Owner, Balance: arg.Balance, Currency: arg.Currency}, createdAccount, err
 }
