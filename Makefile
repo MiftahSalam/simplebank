@@ -25,8 +25,9 @@ migratedown1:
 test:
 	go test -v -cover ./...
 
-mockdb:
+mock:
 	mockgen -package mockdb -destination db/mock/store.go simplebank/db/sqlc Store
+	mockgen -package mockwk -destination worker/mock/distributor.go simplebank/worker TaskDistributor
 
 server-dev:
 	go run main.go
