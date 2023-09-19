@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	db "simplebank/db/sqlc"
+	"simplebank/mail"
 
 	"github.com/hibiken/asynq"
 	"github.com/rs/zerolog/log"
@@ -16,9 +17,10 @@ type TaskProcessor interface {
 type TaskProcessorRedis struct {
 	server *asynq.Server
 	store  db.Store
+	mailer mail.EmailSender
 }
 
-func NewTaskProcessorRedis(opt *asynq.RedisClientOpt, store db.Store) TaskProcessor {
+func NewTaskProcessorRedis(opt *asynq.RedisClientOpt, store db.Store, mailer mail.EmailSender) TaskProcessor {
 	server := asynq.NewServer(opt, asynq.Config{
 		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
 			log.Error().Err(err).Str("type", task.Type()).Bytes("payload", task.Payload()).Msg("process task failed")
@@ -29,6 +31,7 @@ func NewTaskProcessorRedis(opt *asynq.RedisClientOpt, store db.Store) TaskProces
 	return &TaskProcessorRedis{
 		server: server,
 		store:  store,
+		mailer: mailer,
 	}
 }
 

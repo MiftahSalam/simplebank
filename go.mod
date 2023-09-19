@@ -29,6 +29,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/golang/glog v1.1.0 // indirect
 	github.com/hibiken/asynq v0.24.1 // indirect
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.2 // indirect

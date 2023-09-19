@@ -1,0 +1,43 @@
+package gapi
+
+import (
+	"context"
+	db "simplebank/db/sqlc"
+	"simplebank/pb"
+	"simplebank/validation"
+
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+)
+
+func (server *Server) VerifyEmail(ctx context.Context, req *pb.VerifyEmailRequest) (*pb.VerifyEmailResponse, error) {
+	violations := validateVerifyEmailRequest(req)
+	if violations != nil {
+		return nil, invalidArgument(violations)
+	}
+
+	txResult, err := server.store.VerifyEmailTx(ctx, db.VerifyEmailTxParam{
+		EmailId:    req.EmailId,
+		SecretCode: req.SecretCode,
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update user: %s", err)
+	}
+
+	return &pb.VerifyEmailResponse{
+		IsVerified: txResult.User.IsEmailVerified,
+	}, nil
+
+}
+
+func validateVerifyEmailRequest(req *pb.VerifyEmailRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := validation.ValidateEmailId(req.GetEmailId()); err != nil {
+		violations = append(violations, fieldViolation("email_id", err))
+	}
+	if err := validation.ValidateSecretCode(req.GetSecretCode()); err != nil {
+		violations = append(violations, fieldViolation("secret_code", err))
+	}
+
+	return
+}

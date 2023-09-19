@@ -17,6 +17,9 @@ type Config struct {
 	TokenSymetricKey            string        `mapstructure:"TOKEN_SYMETRIC_KEY"`
 	TokenExpiredDuration        time.Duration `mapstructure:"TOKEN_EXPIRED_DURATION"`
 	RefreshTokenExpiredDuration time.Duration `mapstructure:"REFRESH_TOKEN_EXPIRED_DURATION"`
+	EmailSenderName             string        `mapstructure:"EMAIL_SENDER_NAME"`
+	EmailSenderAddress          string        `mapstructure:"EMAIL_SENDER_ADDRESS"`
+	EmailSenderPassword         string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

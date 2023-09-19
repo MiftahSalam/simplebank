@@ -10,6 +10,7 @@ type Store interface {
 	Querier
 	TransferTx(ctx context.Context, arg CreateTransferParams) (TransferTxResult, error)
 	CreateUserTx(ctx context.Context, arg CreateUserTxParam) (CreateUserTxResult, error)
+	VerifyEmailTx(ctx context.Context, arg VerifyEmailTxParam) (VerifyEmailTxResult, error)
 }
 
 type SQLStore struct {
